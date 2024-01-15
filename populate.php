@@ -42,6 +42,47 @@ class Populate_CLI {
 		require_once __DIR__ . '/vendor/autoload.php';
 		$this->faker = Faker\Factory::create();
 	}
+
+	/**
+	 * Populate categories.
+	 *
+	 * ## OPTIONS
+	 * --count=<number>
+	 *     The number of posts to create.
+	 *    ---
+	 *   default: 5
+	 *  ---
+	 * Example: wp populate category --count=10
+	 *
+	 * @since  0.0.1
+	 */
+	public function category($args, $assoc_args): void {
+		//Get the count of categories to create.
+		$count = 5;
+
+		if ( isset( $assoc_args['count'] ) ) {
+			$count = $assoc_args['count'];
+		}
+
+		//Progress bar.
+		$progress = \WP_CLI\Utils\make_progress_bar( 'Generating categories', $count );
+
+		//Loop through the number of categories to create.
+		for ($i=0; $i < $count; $i++) {
+			//Create a new category.
+			wp_insert_term(
+				$this->faker->word,
+				'category'
+			);
+
+			//Increment the progress bar.
+			$progress->tick();
+		}
+
+		//Complete the progress bar.
+		$progress->finish();
+	}
+
 	/**
 	 * Populate tags.
 	 *

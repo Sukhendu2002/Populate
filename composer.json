@@ -1,0 +1,17 @@
+{
+    "name": "mails/populate",
+    "autoload": {
+        "psr-4": {
+            "Mails\\Populate\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Sukhendu Sekhar Guria",
+            "email": "sukhenduguria2017@gmail.com"
+        }
+    ],
+    "require": {
+        "fakerphp/faker": "^1.23"
+    }
+}

@@ -44,6 +44,27 @@ class Populate_CLI {
 		$this->faker = Faker\Factory::create();
 	}
 
+	public function all(): void {
+		$this->post(
+			$args = array(),
+			$assoc_args = array(
+				'count' => 5,
+				'tags' => false,
+				'category' => false,
+				'author' => false,
+				'comment' => false,
+				'image' => false,
+				'all' => true,
+			)
+		);
+		$this->page(
+			$args = array(),
+			$assoc_args = array(
+				'count' => 5,
+			)
+		);
+	}
+
 	/**
 	 * Populate posts.
 	 *
@@ -73,12 +94,17 @@ class Populate_CLI {
 	 *  ---
 	 * default: false
 	 * ---
+	 * --image=<boolean>
+	 *     Whether to add image or not.
+	 * ---
+	 * default: false
+	 * ---
 	 * --all=<boolean>
 	 *     Whether to add all or not.
 	 * ---
 	 * default: false
 	 * ---
-	 * Example: wp populate post --count=10 --tags=true --category=true --author=true --comment=true
+	 * Example: wp populate post --count=10 --tags=true --category=true --author=true --comment=true --image=true --all=true
 	 *
 	 * @since  0.0.1
 	 */
@@ -427,6 +453,7 @@ class Populate_CLI {
 	 * Upload a file to the media library using a URL.
 	 *
 	 * @version 1.0.0
+	 * @see https://gist.github.com/RadGH/966f8c756c5e142a5f489e86e751eacb
 	 *
 	 * @param string $url         URL to be uploaded
 	 * @param null|string $title  If set, used as the post_title

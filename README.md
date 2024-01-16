@@ -12,12 +12,6 @@ The Populate plugin is a tool designed to populate your WordPress database with 
 - Quickly populate your WordPress database with categories and tags.
 - Easy-to-use WP-CLI commands for streamlined data population.
 
-## Installation
-
-1. Clone or download the plugin from the [GitHub repository](https://github.com/Sukhendu2002/Populate).
-2. Upload the plugin folder to the `wp-content/plugins/` directory of your WordPress installation.
-3. Activate the plugin through the WordPress admin interface.
-
 ## Usage
 
 The plugin provides WP-CLI commands for populating your WordPress database. Here are some examples:

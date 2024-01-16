@@ -33,6 +33,7 @@ class Populate_CLI {
 	 * @var \Faker\Generator|Factory
 	 */
 	private \Faker\Generator|Factory $faker;
+
 	/**
 	 * Constructor.
 	 *
@@ -41,6 +42,107 @@ class Populate_CLI {
 	function __construct() {
 		require_once __DIR__ . '/vendor/autoload.php';
 		$this->faker = Faker\Factory::create();
+	}
+
+	public function post( $args, $assoc_args ): void {
+		// Get the count of posts to create.
+		$count = 5;
+		$istags = false;
+		$iscategory = false;
+
+		if ( isset( $assoc_args['count'] ) ) {
+			$count = $assoc_args['count'];
+		}
+		if ( isset( $assoc_args['tags'] ) ) {
+			$istags = filter_var( $assoc_args['tags'], FILTER_VALIDATE_BOOLEAN );
+		}
+		if ( isset( $assoc_args['category'] ) ) {
+			$iscategory = filter_var( $assoc_args['category'], FILTER_VALIDATE_BOOLEAN );
+		}
+
+		$tags = [];
+		$categories = [];
+		$tag_ids = [];
+		$category_ids = [];
+
+		if ( $istags ) {
+			$tags = get_terms( array(
+				'taxonomy' => 'post_tag',
+				'hide_empty' => false,
+			) );
+			if ( count( $tags ) < 3 ) {
+				WP_CLI::line( 'Not Enough Tags, Generating Tags' );
+				$this->tag( $args, $assoc_args );
+			}
+			$tags = get_terms( array(
+				'taxonomy' => 'post_tag',
+				'hide_empty' => false,
+			) );
+			foreach ( $tags as $tag ) {
+				$tag_ids[] = $tag->term_id;
+			}
+		}
+
+		if ( $iscategory ) {
+			$categories = get_terms( array(
+				'taxonomy' => 'category',
+				'hide_empty' => false,
+			) );
+			if ( count( $categories ) < 3 ) {
+				WP_CLI::line( 'Not Enough Categories, Generating Categories' );
+				$this->category( $args, $assoc_args );
+			}
+			$categories = get_terms( array(
+				'taxonomy' => 'category',
+				'hide_empty' => false,
+			) );
+			foreach ( $categories as $category ) {
+				$category_ids[] = $category->term_id;
+			}
+		}
+
+		// Progress bar.
+		$progress = \WP_CLI\Utils\make_progress_bar( 'Generating posts', $count );
+
+		// Loop through the number of posts to create.
+		for( $i = 0; $i < $count; $i++ ) {
+			// Create a new post.
+			$post_id = wp_insert_post( array(
+				'post_title' => $this->faker->sentence,
+				'post_content' => $this->faker->paragraphs( 5, true ),
+				'post_status' => 'publish',
+				'post_author' => 1,
+				'post_type' => 'post',
+				'post_date' => $this->faker->dateTimeBetween( '-1 year', 'now' )->format( 'Y-m-d H:i:s' ),
+			) );
+
+			if ( $istags ) {
+				//take random 3 tags
+				$random_tags = array_rand( $tag_ids, 3 );
+				$tags = [];
+				foreach ( $random_tags as $random_tag ) {
+					$tags[] = $tag_ids[ $random_tag ];
+				}
+				wp_set_post_terms( $post_id, $tags, 'post_tag' );
+
+			}
+
+			if ( $iscategory ) {
+				//take any one category
+				 $random_category = array_rand( $category_ids, 1 );
+				 $category = [];
+				 $category[] = $category_ids[ $random_category ];
+				 wp_set_post_terms( $post_id, $category, 'category' );
+
+			}
+
+			// Increment the progress bar.
+			$progress->tick();
+		}
+
+		// Complete the progress bar.
+		$progress->finish();
+
 	}
 
 	/**
@@ -56,31 +158,34 @@ class Populate_CLI {
 	 *
 	 * @since  0.0.1
 	 */
-	public function category($args, $assoc_args): void {
-		//Get the count of categories to create.
+	public function category( $args, $assoc_args ) {
+		// Get the count of categories to create.
 		$count = 5;
 
 		if ( isset( $assoc_args['count'] ) ) {
 			$count = $assoc_args['count'];
 		}
 
-		//Progress bar.
+		// Progress bar.
 		$progress = \WP_CLI\Utils\make_progress_bar( 'Generating categories', $count );
 
-		//Loop through the number of categories to create.
-		for ($i=0; $i < $count; $i++) {
-			//Create a new category.
+		// Loop through the number of categories to create.
+		for ( $i = 0; $i < $count; $i++ ) {
+			// Create a new category.
 			wp_insert_term(
 				$this->faker->word,
 				'category'
 			);
 
-			//Increment the progress bar.
+			// Increment the progress bar.
 			$progress->tick();
 		}
 
-		//Complete the progress bar.
+		// Complete the progress bar.
 		$progress->finish();
+
+		WP_CLI::success( 'Categories created successfully.' );
+		return true;
 	}
 
 	/**
@@ -96,31 +201,34 @@ class Populate_CLI {
 	 *
 	 * @since  0.0.1
 	 */
-	public function tag($args, $assoc_args): void {
-		//Get the count of tags to create.
+	public function tag( $args, $assoc_args ) {
+		// Get the count of tags to create.
 		$count = 5;
 
 		if ( isset( $assoc_args['count'] ) ) {
 			$count = $assoc_args['count'];
 		}
 
-		//Progress bar.
+		// Progress bar.
 		$progress = \WP_CLI\Utils\make_progress_bar( 'Generating tags', $count );
 
-		//Loop through the number of tags to create.
-		for ($i=0; $i < $count; $i++) {
-			//Create a new tag.
+		// Loop through the number of tags to create.
+		for ( $i = 0; $i < $count; $i++ ) {
+			// Create a new tag.
 			wp_insert_term(
 				$this->faker->word,
 				'post_tag'
 			);
 
-			//Increment the progress bar.
+			// Increment the progress bar.
 			$progress->tick();
 		}
 
-		//Complete the progress bar.
+		// Complete the progress bar.
 		$progress->finish();
+
+		WP_CLI::success( 'Tags created successfully.' );
+		return true;
 	}
 }
 

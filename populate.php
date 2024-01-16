@@ -44,6 +44,29 @@ class Populate_CLI {
 		$this->faker = Faker\Factory::create();
 	}
 
+	/**
+	 * Populate posts.
+	 *
+	 * ## OPTIONS
+	 * --count=<number>
+	 *     The number of posts to create.
+	 *    ---
+	 *   default: 5
+	 *  ---
+	 * --tags=<boolean>
+	 *     Whether to add tags or not.
+	 *    ---
+	 *   default: false
+	 *  ---
+	 * --category=<boolean>
+	 *     Whether to add category or not.
+	 *    ---
+	 *   default: false
+	 *  ---
+	 * Example: wp populate post --count=10 --tags=true --category=true
+	 *
+	 * @since  0.0.1
+	 */
 	public function post( $args, $assoc_args ): void {
 		// Get the count of posts to create.
 		$count = 5;
@@ -146,6 +169,52 @@ class Populate_CLI {
 	}
 
 	/**
+	 * Populate authors.
+	 *
+	 * ## OPTIONS
+	 * --count=<number>
+	 *     The number of authors to create.
+	 *    ---
+	 *   default: 5
+	 *  ---
+	 * Example: wp populate author --count=10
+	 *
+	 * @since  0.0.1
+	 */
+	public function author( $args, $assoc_args ): void {
+		// Get the count of authors to create.
+		$count = 5;
+
+		if ( isset( $assoc_args['count'] ) ) {
+			$count = $assoc_args['count'];
+		}
+
+		// Progress bar.
+		$progress = \WP_CLI\Utils\make_progress_bar( 'Generating authors', $count );
+
+		//add authors
+		for( $i = 0; $i < $count; $i++ ) {
+
+			$user_id = wp_insert_user( array(
+				'user_login' => $this->faker->userName,
+				'user_pass' => $this->faker->password,
+				'user_email' => $this->faker->email,
+				'first_name' => $this->faker->firstName,
+				'last_name' => $this->faker->lastName,
+				'role' => 'author',
+			) );
+
+			// Increment the progress bar.
+			$progress->tick();
+		}
+
+		// Complete the progress bar.
+		$progress->finish();
+
+		WP_CLI::success( 'Authors created successfully.' );
+	}
+
+	/**
 	 * Populate categories.
 	 *
 	 * ## OPTIONS
@@ -158,7 +227,7 @@ class Populate_CLI {
 	 *
 	 * @since  0.0.1
 	 */
-	public function category( $args, $assoc_args ) {
+	public function category( $args, $assoc_args ): void {
 		// Get the count of categories to create.
 		$count = 5;
 
@@ -185,7 +254,6 @@ class Populate_CLI {
 		$progress->finish();
 
 		WP_CLI::success( 'Categories created successfully.' );
-		return true;
 	}
 
 	/**
@@ -201,7 +269,7 @@ class Populate_CLI {
 	 *
 	 * @since  0.0.1
 	 */
-	public function tag( $args, $assoc_args ) {
+	public function tag( $args, $assoc_args ): void {
 		// Get the count of tags to create.
 		$count = 5;
 
@@ -228,7 +296,6 @@ class Populate_CLI {
 		$progress->finish();
 
 		WP_CLI::success( 'Tags created successfully.' );
-		return true;
 	}
 }
 

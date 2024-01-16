@@ -63,7 +63,22 @@ class Populate_CLI {
 	 *    ---
 	 *   default: false
 	 *  ---
-	 * Example: wp populate post --count=10 --tags=true --category=true
+	 * --author=<boolean>
+	 *     Whether to add author or not.
+	 *   ---
+	 *  default: false
+	 * ---
+	 * --comment=<boolean>
+	 *     Whether to add comment or not.
+	 *  ---
+	 * default: false
+	 * ---
+	 * --all=<boolean>
+	 *     Whether to add all or not.
+	 * ---
+	 * default: false
+	 * ---
+	 * Example: wp populate post --count=10 --tags=true --category=true --author=true --comment=true
 	 *
 	 * @since  0.0.1
 	 */
@@ -219,6 +234,52 @@ class Populate_CLI {
 		$progress->finish();
 
 	}
+
+	/**
+	 * Populate pages.
+	 *
+	 * ## OPTIONS
+	 * --count=<number>
+	 *     The number of posts to create.
+	 *    ---
+	 *   default: 5
+	 *  ---
+	 * Example: wp populate page --count=10
+	 *
+	 * @since  0.0.1
+	 */
+	public function page( $args, $assoc_args ): void {
+		// Get the count of posts to create.
+		$count = 5;
+
+		if ( isset( $assoc_args['count'] ) ) {
+			$count = $assoc_args['count'];
+		}
+
+		// Progress bar.
+		$progress = \WP_CLI\Utils\make_progress_bar( 'Generating pages', $count );
+
+		// Loop through the number of posts to create.
+		for( $i = 0; $i < $count; $i++ ) {
+			// Create a new post.
+			$post_id = wp_insert_post( array(
+				'post_title' => $this->faker->country,
+				'post_content' => $this->faker->paragraphs( 5, true ),
+				'post_status' => 'publish',
+				'post_author' => 1,
+				'post_type' => 'page',
+				'post_date' => $this->faker->dateTimeBetween( '-1 year', 'now' )->format( 'Y-m-d H:i:s' ),
+			) );
+
+			// Increment the progress bar.
+			$progress->tick();
+		}
+
+		// Complete the progress bar.
+		$progress->finish();
+
+	}
+
 
 	/**
 	 * Populate authors.

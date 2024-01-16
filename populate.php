@@ -72,6 +72,7 @@ class Populate_CLI {
 		$count = 5;
 		$istags = false;
 		$iscategory = false;
+		$isauthor = false;
 
 		if ( isset( $assoc_args['count'] ) ) {
 			$count = $assoc_args['count'];
@@ -82,11 +83,16 @@ class Populate_CLI {
 		if ( isset( $assoc_args['category'] ) ) {
 			$iscategory = filter_var( $assoc_args['category'], FILTER_VALIDATE_BOOLEAN );
 		}
+		if ( isset( $assoc_args['author'] ) ) {
+			$isauthor = filter_var( $assoc_args['author'], FILTER_VALIDATE_BOOLEAN );
+		}
 
 		$tags = [];
 		$categories = [];
 		$tag_ids = [];
 		$category_ids = [];
+		$author_ids = [];
+
 
 		if ( $istags ) {
 			$tags = get_terms( array(
@@ -124,6 +130,22 @@ class Populate_CLI {
 			}
 		}
 
+		if ( $isauthor ) {
+			$authors = get_users( array(
+				'role' => 'author',
+			) );
+			if ( count( $authors ) < 3 ) {
+				WP_CLI::line( 'Not Enough Authors, Generating Authors' );
+				$this->author( $args, $assoc_args );
+			}
+			$authors = get_users( array(
+				'role' => 'author',
+			) );
+			foreach ( $authors as $author ) {
+				$author_ids[] = $author->ID;
+			}
+		}
+
 		// Progress bar.
 		$progress = \WP_CLI\Utils\make_progress_bar( 'Generating posts', $count );
 
@@ -134,7 +156,7 @@ class Populate_CLI {
 				'post_title' => $this->faker->sentence,
 				'post_content' => $this->faker->paragraphs( 5, true ),
 				'post_status' => 'publish',
-				'post_author' => 1,
+				'post_author' => $author_ids[ array_rand( $author_ids, 1 ) ],
 				'post_type' => 'post',
 				'post_date' => $this->faker->dateTimeBetween( '-1 year', 'now' )->format( 'Y-m-d H:i:s' ),
 			) );

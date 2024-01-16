@@ -73,7 +73,12 @@ class Populate_CLI {
 		$istags = false;
 		$iscategory = false;
 		$isauthor = false;
+		$iscomment = false;
+		$isall = false;
 
+		if ( isset( $assoc_args['all'] ) ) {
+			$isall = filter_var( $assoc_args['all'], FILTER_VALIDATE_BOOLEAN );
+		}
 		if ( isset( $assoc_args['count'] ) ) {
 			$count = $assoc_args['count'];
 		}
@@ -86,6 +91,9 @@ class Populate_CLI {
 		if ( isset( $assoc_args['author'] ) ) {
 			$isauthor = filter_var( $assoc_args['author'], FILTER_VALIDATE_BOOLEAN );
 		}
+		if ( isset( $assoc_args['comment'] ) ) {
+			$iscomment = filter_var( $assoc_args['comment'], FILTER_VALIDATE_BOOLEAN );
+		}
 
 		$tags = [];
 		$categories = [];
@@ -94,7 +102,7 @@ class Populate_CLI {
 		$author_ids = [];
 
 
-		if ( $istags ) {
+		if ( $istags || $isall ) {
 			$tags = get_terms( array(
 				'taxonomy' => 'post_tag',
 				'hide_empty' => false,
@@ -112,7 +120,7 @@ class Populate_CLI {
 			}
 		}
 
-		if ( $iscategory ) {
+		if ( $iscategory || $isall ) {
 			$categories = get_terms( array(
 				'taxonomy' => 'category',
 				'hide_empty' => false,
@@ -130,7 +138,7 @@ class Populate_CLI {
 			}
 		}
 
-		if ( $isauthor ) {
+		if ( $isauthor || $isall ) {
 			$authors = get_users( array(
 				'role' => 'author',
 			) );
@@ -156,12 +164,34 @@ class Populate_CLI {
 				'post_title' => $this->faker->sentence,
 				'post_content' => $this->faker->paragraphs( 5, true ),
 				'post_status' => 'publish',
-				'post_author' => $author_ids[ array_rand( $author_ids, 1 ) ],
+				'post_author' => count( $author_ids ) > 0 ? $author_ids[ array_rand( $author_ids, 1 ) ] : 1,
 				'post_type' => 'post',
 				'post_date' => $this->faker->dateTimeBetween( '-1 year', 'now' )->format( 'Y-m-d H:i:s' ),
 			) );
 
-			if ( $istags ) {
+
+			if ( $iscomment || $isall ) {
+				//add comments
+				$comment_count = rand( 0, 10 );
+				for ( $j = 0; $j < $comment_count; $j++ ) {
+					$comment_id = wp_insert_comment( array(
+						'comment_post_ID' => $post_id,
+						'comment_author' => $this->faker->name,
+						'comment_author_email' => $this->faker->email,
+						'comment_author_url' => $this->faker->url,
+						'comment_content' => $this->faker->paragraphs( 1, true ),
+						'comment_type' => '',
+						'comment_parent' => 0,
+						'user_id' => 0,
+						'comment_author_IP' => $this->faker->ipv4,
+						'comment_agent' => $this->faker->userAgent,
+						'comment_date' => $this->faker->dateTimeBetween( '-1 year', 'now' )->format( 'Y-m-d H:i:s' ),
+						'comment_approved' => 1,
+					) );
+				}
+			}
+
+			if ( $istags || $isall ) {
 				//take random 3 tags
 				$random_tags = array_rand( $tag_ids, 3 );
 				$tags = [];
@@ -172,7 +202,7 @@ class Populate_CLI {
 
 			}
 
-			if ( $iscategory ) {
+			if ( $iscategory || $isall ) {
 				//take any one category
 				 $random_category = array_rand( $category_ids, 1 );
 				 $category = [];
